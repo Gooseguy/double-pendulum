@@ -12,9 +12,11 @@ namespace DoublePendulum
 
 		public abstract void Update(GameTime time, float timestep);
 
-		public abstract float GetEnergy ();
+		public abstract float GetEnergy ();	
 
 		public abstract void Draw(SpriteBatch spriteBatch, SpriteFont font, Texture2D nodeTexture, Texture2D pix);
+
+		public abstract void SetState(Vector2 mousePosition);
 	}
 }
 

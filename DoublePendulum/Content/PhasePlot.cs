@@ -11,6 +11,7 @@ namespace DoublePendulum
 	public class PhasePlot
 	{
 		Texture2D texture;
+		Texture2D grid;
 		readonly int Resolution = 200;
 		public float MinT { get; set; }
 		public float MaxT { get; set; }
@@ -25,12 +26,19 @@ namespace DoublePendulum
 
 		public int FadePeriod { get; set; }
 
+		const float gridIntervalT = (float)Math.PI/16f;
+		const float gridIntervalP = 0.05f;
+
+		Color gridColor = Color.LightGray;
+
 		public float FadeMultiplier { get; set; }
 
 		public Vector2 Position { get; set; }
 		private int count=0;
 
 		public Rectangle BoundingRectangle { get { return new Rectangle ((int)Position.X, (int)Position.Y, Resolution, Resolution); } }
+
+		bool axisTickLabels = true;
 
 
 		MouseState prevMouseState;
@@ -43,10 +51,13 @@ namespace DoublePendulum
 			FadeMultiplier = 0.95f;
 			FadePeriod = 100;
 			texture = new Texture2D (graphicsDevice, resolution, resolution);
+			grid = new Texture2D (graphicsDevice, resolution, resolution);
 			Color[] data = new Color[resolution * resolution];
 			for (int i = 0; i < resolution * resolution; i++)
-				data [i] = new Color (Color.White, 0);
+				data [i] = new Color (Color.White*0f, 0);
 			texture.SetData<Color> (data);
+
+			generateGrid ();
 		}
 
 		/// <summary>
@@ -72,11 +83,14 @@ namespace DoublePendulum
 			if (BoundingRectangle.Contains (Mouse.GetState ().Position)) {
 
 				int scrollChange = mstate.ScrollWheelValue - prevMouseState.ScrollWheelValue;
-
 				zoom += 0.0001f * scrollChange;
 				zoom = MathHelper.Clamp (zoom, MinZoom, MaxZoom);
-
+				if (scrollChange != 0) { 
+					clearPhasePortrait ();
+					generateGrid ();
+				}
 			}
+			
 			prevMouseState = mstate;
 		}
 
@@ -87,6 +101,21 @@ namespace DoublePendulum
 			int rP = (int)(Resolution * (p*zoom-MinP) / (MaxP - MinP));
 
 			texture.SetData (0, new Rectangle (rT, rP, 1, 1), new Color[] { Color.Black }, 0, 1);
+		}
+
+		void generateGrid()
+		{
+			Color[] data = new Color[Resolution * Resolution];
+			int dT = (int)(gridIntervalT*zoom * Resolution);
+			int dP = (int)(gridIntervalP*zoom * Resolution);
+			for (int i = 0; i < Resolution; i++)
+				for (int j = 0; j < Resolution; j++) {
+					if ((i-Resolution/2) % dT == 0 || (j-Resolution/2)%dP==0)
+						data [i + j * Resolution] = gridColor;
+					else data [i + j * Resolution] = Color.White;
+				}
+
+			grid.SetData<Color> (data);
 		}
 
 		void fadePhasePortrait()
@@ -100,8 +129,20 @@ namespace DoublePendulum
 			texture.SetData<Color>(data);
 		}
 
+		void clearPhasePortrait()
+		{
+			Color[] data = new Color[Resolution * Resolution];
+			texture.GetData<Color> (data);
+
+			for (int i = 0; i < Resolution * Resolution; i++)
+				data [i] = Color.White*0f;
+
+			texture.SetData<Color>(data);
+		}
+
 		public void Draw(SpriteBatch spriteBatch, SpriteFont font)
 		{
+			spriteBatch.Draw (grid, Position, null, null, null, 0, null, Color.White, SpriteEffects.None, 0);
 			spriteBatch.Draw (texture, Position, null, null, null, 0, null, Color.White, SpriteEffects.None, 0);
 
 			Vector2 size = font.MeasureString (Title);

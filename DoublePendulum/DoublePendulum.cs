@@ -7,15 +7,17 @@ namespace DoublePendulum
 	public class DoublePendulum : PhysSystem
 	{
 		public Vector2 Offset { get; set; }
-		float t1 = (float)Math.PI/16, t2 = (float)Math.PI/16;
-		float p1 = -0.5f, p2 = -.5f;
+		float t1 = (float)Math.PI/16, t2 = (float)(2*Math.PI/3);
+		float p1 = 0, p2 = 0;
 		float m1 = 1, m2 = 1;
 		float g = 1.0f;
 		float l1 = 1, l2=1;
 
 		PhasePlot plot1, plot2;
 
-		public DoublePendulum (Vector2 offset, GraphicsDevice graphicsDevice)
+		BallSprite ball1, ball2;
+
+		public DoublePendulum (Vector2 offset, GraphicsDevice graphicsDevice, Texture2D circleTexture)
 		{
 			Offset = offset;
 			plot1 = new PhasePlot (200, new Vector2(300,50), graphicsDevice);
@@ -34,6 +36,9 @@ namespace DoublePendulum
 			plot2.MaxT = (float)Math.PI*1f;
 			plot2.MinP = -8;
 			plot2.MaxP = 8;
+
+			ball1 = new BallSprite (circleTexture, "1");
+			ball2 = new BallSprite (circleTexture, "2");
 		}
 
 		public override float GetEnergy ()
@@ -91,15 +96,25 @@ namespace DoublePendulum
 
 			Vector2 pos1 = Offset + scale*l1 * new Vector2 ((float)Math.Sin (t1), (float)Math.Cos (t1));
 			Vector2 pos2 = pos1 + scale*l2 * new Vector2 ((float)Math.Sin (t2), (float)Math.Cos (t2));
-			spriteBatch.Draw (nodeTexture, pos1, null, null, new Vector2(nodeTexture.Width/2, nodeTexture.Height/2),0,null, Color.White, SpriteEffects.None,0);
-			spriteBatch.Draw (nodeTexture, pos2,null, null, new Vector2(nodeTexture.Width/2, nodeTexture.Height/2),0,null, Color.White, SpriteEffects.None,0);
+
 			spriteBatch.Draw (pix, null, new Rectangle ((int)pos1.X, (int)pos1.Y-thickness/2, (int)((pos2 - pos1).Length ()), thickness), null, null, 
 				(float)Math.Atan2 (pos2.Y - pos1.Y, pos2.X - pos1.X), null, Color.Black, SpriteEffects.None, 0);
 			spriteBatch.Draw (pix, null, new Rectangle ((int)Offset.X, (int)Offset.Y-thickness/2, (int)((pos1-Offset).Length ()), thickness), null, null, 
 				(float)Math.Atan2 (pos1.Y-Offset.Y, pos1.X-Offset.X), null, Color.Black, SpriteEffects.None, 0);
 
+			ball1.Position = pos1;
+			ball2.Position = pos2;
+			ball1.Draw (spriteBatch, font);
+			ball2.Draw (spriteBatch, font);
 			plot1.Draw (spriteBatch, font);
 			plot2.Draw (spriteBatch, font);
+		}
+
+		public override void SetState (Vector2 mousePosition)
+		{
+			Vector2 pos = mousePosition - Offset;
+			t1 = (float)Math.Atan2 (pos.X, pos.Y);
+			p1 = 0;
 		}
 	}
 }

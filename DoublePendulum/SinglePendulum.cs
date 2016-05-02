@@ -15,7 +15,9 @@ namespace DoublePendulum
 
 		PhasePlot plot1;
 
-		public SinglePendulum (Vector2 offset, GraphicsDevice graphicsDevice)
+		BallSprite ball1;
+
+		public SinglePendulum (Vector2 offset, GraphicsDevice graphicsDevice, Texture2D circleTexture)
 		{
 			Offset = offset;
 			plot1 = new PhasePlot (200, new Vector2(300,50), graphicsDevice);
@@ -26,6 +28,8 @@ namespace DoublePendulum
 			plot1.MaxT = (float)Math.PI;
 			plot1.MinP = -5;
 			plot1.MaxP = 5;
+
+			ball1 = new BallSprite (circleTexture, "1");
 		}
 
 		public override float GetEnergy ()
@@ -60,11 +64,20 @@ namespace DoublePendulum
 
 			Vector2 pos1 = Offset + scale*l1 * new Vector2 ((float)Math.Sin (t1), (float)Math.Cos (t1));
 //			Vector2 pos2 = pos1 + scale*l2 * new Vector2 ((float)Math.Sin (t2), (float)Math.Cos (t2));
-			spriteBatch.Draw (nodeTexture, pos1, null, null, new Vector2(nodeTexture.Width/2, nodeTexture.Height/2),0,null, Color.White, SpriteEffects.None,0);
 
 			spriteBatch.Draw (pix, null, new Rectangle ((int)Offset.X, (int)Offset.Y-thickness/2, (int)((pos1-Offset).Length ()), thickness), null, null, 
 				(float)Math.Atan2 (pos1.Y-Offset.Y, pos1.X-Offset.X), null, Color.Black, SpriteEffects.None, 0);
+
+			ball1.Position = pos1;
+			ball1.Draw (spriteBatch, font);
+
 			plot1.Draw (spriteBatch, font);
+		}
+		public override void SetState (Vector2 mousePosition)
+		{
+			Vector2 pos = mousePosition - Offset;
+			t1 = (float)Math.Atan2 (pos.X, pos.Y);
+			p1 = 0;
 		}
 	}
 }

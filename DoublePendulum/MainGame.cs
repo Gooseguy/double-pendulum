@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Storage;
 using Microsoft.Xna.Framework.Input;
 using System.Threading;
+using System.Collections.Generic;
 
 #endregion
 
@@ -35,7 +36,10 @@ namespace DoublePendulum
 
 		Texture2D thetaTex1, dThetaTex1,thetaTex2, dThetaTex2;
 
-		SinglePendulum pendulum;
+		List<PhysSystem> systems;
+		int currSystem = 0;
+
+		KeyboardState prevKeyState;
 
 		public MainGame ()
 		{
@@ -77,7 +81,9 @@ namespace DoublePendulum
 
 			pix = new Texture2D (graphics.GraphicsDevice, 1, 1);
 			pix.SetData<Color> (new Color[]{ Color.White });
-			pendulum = new SinglePendulum (new Vector2 (100, 100), graphics.GraphicsDevice);
+			systems = new List<PhysSystem> ();
+			systems.Add(new DoublePendulum (new Vector2 (100, 100), graphics.GraphicsDevice, circle));
+			systems.Add(new SinglePendulum (new Vector2 (100, 100), graphics.GraphicsDevice, circle));
 
 
 //			font = Content.Load<SpriteFont> ("Comic.spritefont");
@@ -100,19 +106,25 @@ namespace DoublePendulum
 			}
 			#endif
 			for (int i = 0; i < 10; i++) {
-				pendulum.Update (gameTime, timestep);
+				systems[currSystem].Update (gameTime, timestep);
 			}
 			count++;
 			Console.WriteLine ("Avg energy: {0}", energyAverage / count);
 			base.Update (gameTime);
 
-			var mstate = Mouse.GetState ();
+			KeyboardState keyState = Keyboard.GetState ();
 
-//			if (mstate.LeftButton == ButtonState.Pressed) {
-//				Vector2 pos = mstate.Position.ToVector2 () - offset;
-//				t1 = (float)Math.Atan2 (pos.X, pos.Y);
-//				p1 = 0;
-//			}
+			if (keyState.IsKeyDown (Keys.Tab) && prevKeyState.IsKeyUp (Keys.Tab)) {
+				currSystem++;
+				if (currSystem >= systems.Count)
+					currSystem = 0;
+			}
+
+			var mstate = Mouse.GetState ();
+			if (mstate.LeftButton == ButtonState.Pressed)
+				systems [currSystem].SetState (mstate.Position.ToVector2 ());
+			prevKeyState = keyState;
+
 		}
 
 
@@ -128,7 +140,7 @@ namespace DoublePendulum
 			spriteBatch.Begin ();
 
 
-			pendulum.Draw (spriteBatch, font, circle, pix);
+			systems[currSystem].Draw (spriteBatch, font, circle, pix);
 
 
 //			spriteBatch.Draw (phasePortrait1, new Rectangle((int)phasePortrait1Position.X,(int)phasePortrait1Position.Y,phaseresolution,phaseresolution), Color.White);

@@ -67,6 +67,7 @@
     <Compile Include="PhysSystem.cs" />
     <Compile Include="DoublePendulum.cs" />
     <Compile Include="SinglePendulum.cs" />
+    <Compile Include="BallSprite.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
