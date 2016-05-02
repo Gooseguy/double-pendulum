@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 
 namespace DoublePendulum
 {
@@ -15,7 +16,9 @@ namespace DoublePendulum
 		public float MaxT { get; set; }
 		public float MinP { get; set; }
 		public float MaxP { get; set; }
-
+		float zoom = 1f;
+		const float MinZoom = 0.1f;
+		const float MaxZoom = 10f;
 		public string Title { get; set; }
 		public string HorizontalAxisLabel { get; set; }
 		public string VerticalAxisLabel { get; set; }
@@ -26,6 +29,11 @@ namespace DoublePendulum
 
 		public Vector2 Position { get; set; }
 		private int count=0;
+
+		public Rectangle BoundingRectangle { get { return new Rectangle ((int)Position.X, (int)Position.Y, Resolution, Resolution); } }
+
+
+		MouseState prevMouseState;
 
 		public PhasePlot (int resolution, Vector2 position, GraphicsDevice graphicsDevice)
 		{
@@ -53,13 +61,30 @@ namespace DoublePendulum
 			if (count % FadePeriod == 0)
 				fadePhasePortrait ();
 			count++;
+			handleInput ();
+
+		}
+
+		void handleInput()
+		{
+			MouseState mstate = Mouse.GetState ();
+
+			if (BoundingRectangle.Contains (Mouse.GetState ().Position)) {
+
+				int scrollChange = mstate.ScrollWheelValue - prevMouseState.ScrollWheelValue;
+
+				zoom += 0.0001f * scrollChange;
+				zoom = MathHelper.Clamp (zoom, MinZoom, MaxZoom);
+
+			}
+			prevMouseState = mstate;
 		}
 
 		void setPhasePortrait(float t, float p)
 		{
 
-			int rT = (int)(Resolution * (t-MinT) / (MaxT - MinT));
-			int rP = (int)(Resolution * (p-MinP) / (MaxP - MinP));
+			int rT = (int)(Resolution * (t*zoom-MinT) / (MaxT - MinT));
+			int rP = (int)(Resolution * (p*zoom-MinP) / (MaxP - MinP));
 
 			texture.SetData (0, new Rectangle (rT, rP, 1, 1), new Color[] { Color.Black }, 0, 1);
 		}
@@ -89,7 +114,11 @@ namespace DoublePendulum
 			Vector2 size3 = font.MeasureString (VerticalAxisLabel);
 			spriteBatch.DrawString (font, VerticalAxisLabel, Position + new Vector2 (-size3.Y, (Resolution + size3.X)/2), Color.Black, 
 				-(float)Math.PI/2, Vector2.Zero,1.0f,SpriteEffects.None,0);
-			
+			string zoomLabel = String.Format ("{0}%", (int)(zoom * 100));
+			Vector2 size4 = font.MeasureString (zoomLabel);
+
+			spriteBatch.DrawString (font, zoomLabel, Position + new Vector2 ((Resolution - size4.X), Resolution-size4.Y), Color.Black);
+
 		}
 	}
 }

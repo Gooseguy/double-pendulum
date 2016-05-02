@@ -64,6 +64,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Content\PhasePlot.cs" />
     <Compile Include="MainGame.cs" />
+    <Compile Include="PhysSystem.cs" />
+    <Compile Include="DoublePendulum.cs" />
+    <Compile Include="SinglePendulum.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
