@@ -60,9 +60,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Game1.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Content\PhasePlot.cs" />
+    <Compile Include="MainGame.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -89,5 +90,7 @@
     </Content>
     <Content Include="Content\MainFontLarge.spritefont" />
     <Content Include="Content\MainFontLarge.xnb" />
+    <Content Include="Content\Arial.spritefont" />
+    <Content Include="Content\Arial.xnb" />
   </ItemGroup>
 </Project>

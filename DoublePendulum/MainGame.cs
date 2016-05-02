@@ -14,40 +14,28 @@ namespace DoublePendulum
 	/// <summary>
 	/// This is the main type for your game.
 	/// </summary>
-	public class Game1 : Game
+	public class MainGame : Game
 	{
 		GraphicsDeviceManager graphics;
 
 		SpriteBatch spriteBatch;
 
-		float t1 = (float)Math.PI/8, t2 = (float)Math.PI/8;
-		float p1 = 0, p2 = 2f;
+		float t1 = (float)Math.PI/16, t2 = (float)Math.PI/16;
+		float p1 = -0.5f, p2 = -.5f;
 		float m1 = 1, m2 = 1;
 		float g = 1.0f;
-		float l1 = 1, l2=1f;
+		float l1 = 1, l2=1;
 		float timestep = 0.005f;
 		float scale = 100;
-		Vector2 offset = new Vector2(150,100);
+		Vector2 offset = new Vector2(125,100);
 
 		int count=0;
 		float fadeMultiplier=0.96f;
 
-		const float minT1 = -(float)Math.PI;
-		const float maxT1 = (float)Math.PI;
-		const float minP1 = -5;
-		const float maxP1 = 5;
-		const float minT2 = -(float)Math.PI*15f;
-		const float maxT2 = (float)Math.PI*15f;
-		const float minP2 = -8;
-		const float maxP2 = 8;
 
-		Texture2D phasePortrait1, phasePortrait2;
-		const int phaseresolution = 200;
+		PhasePlot plot1, plot2;
 
 		float energyAverage = 0;
-
-		Vector2 phasePortrait1Position = new Vector2 (300, 200);
-		Vector2 phasePortrait2Position = new Vector2 (500, 200);
 
 		SpriteFont font;
 
@@ -57,11 +45,12 @@ namespace DoublePendulum
 
 		Texture2D thetaTex1, dThetaTex1,thetaTex2, dThetaTex2;
 
-		public Game1 ()
+		public MainGame ()
 		{
 			graphics = new GraphicsDeviceManager (this);
 			Content.RootDirectory = "Content";	            
 			graphics.IsFullScreen = false;		
+			this.IsMouseVisible = true;
 		}
 
 		/// <summary>
@@ -92,18 +81,28 @@ namespace DoublePendulum
 			thetaTex2 = Content.Load <Texture2D>("theta2.png");
 			dThetaTex2 = Content.Load <Texture2D>("dtheta2.png");
 
-			font = Content.Load<SpriteFont> ("MainFontLarge");
+			font = Content.Load<SpriteFont> ("Arial");
 
 			pix = new Texture2D (graphics.GraphicsDevice, 1, 1);
 			pix.SetData<Color> (new Color[]{ Color.White });
 
-			phasePortrait1 = new Texture2D (graphics.GraphicsDevice, phaseresolution, phaseresolution);
-			phasePortrait2 = new Texture2D (graphics.GraphicsDevice, phaseresolution, phaseresolution);
-			Color[] data = new Color[phaseresolution * phaseresolution];
-			for (int i = 0; i < phaseresolution * phaseresolution; i++)
-				data [i] = new Color (Color.White, 0);
-			phasePortrait1.SetData<Color> (data);
-			phasePortrait2.SetData<Color> (data);
+			plot1 = new PhasePlot (200, new Vector2(300,50), graphics.GraphicsDevice);
+			plot1.Title = "Phase Portrait 1";
+			plot1.VerticalAxisLabel = "Change in Angle";
+			plot1.HorizontalAxisLabel = "Angle";
+			plot1.MinT = -(float)Math.PI;
+			plot1.MaxT = (float)Math.PI;
+			plot1.MinP = -5;
+			plot1.MaxP = 5;
+			plot2 = new PhasePlot (200, new Vector2(550,50), graphics.GraphicsDevice);
+			plot2.VerticalAxisLabel = "Change in Angle";
+			plot2.HorizontalAxisLabel = "Angle";
+			plot2.Title = "Phase Portrait 2";
+			plot2.MinT = -(float)Math.PI*1f;
+			plot2.MaxT = (float)Math.PI*1f;
+			plot2.MinP = -8;
+			plot2.MaxP = 8;
+
 //			font = Content.Load<SpriteFont> ("Comic.spritefont");
 			//TODO: use this.Content to load your game content here 
 		}
@@ -152,56 +151,25 @@ namespace DoublePendulum
 
 //				p1 *= 0.9f;
 //				p2 *= 0.9f;
-				setPhasePortrait1 ();
-				setPhasePortrait2 ();
 
-				if (count % 100 == 0) {
-					fadePhasePortrait1 ();
-					fadePhasePortrait2 ();
-				}
+				plot1.Update (gameTime, t1, p1);
+				plot2.Update (gameTime, t2, p2);
+
 			}
 			count++;
 			energyAverage += calculateEnergy ();
 			Console.WriteLine ("Avg energy: {0}", energyAverage / count);
 			base.Update (gameTime);
-		}
-		
-		void setPhasePortrait1()
-		{
-			int rT = (int)(phaseresolution * (t1-minT1) / (maxT1 - minT1));
-			int rP = (int)(phaseresolution * (p1-minP1) / (maxP1 - minP1));
 
-			phasePortrait1.SetData (0, new Rectangle (rT, rP, 1, 1), new Color[] { Color.Black }, 0, 1);
-		}
-		void setPhasePortrait2()
-		{
-			int rT = (int)(phaseresolution * (t2-minT2) / (maxT2 - minT2));
-			int rP = (int)(phaseresolution * (p2-minP2) / (maxP2 - minP2));
+			var mstate = Mouse.GetState ();
 
-			phasePortrait2.SetData (0, new Rectangle (rT, rP, 1, 1), new Color[] { Color.Black }, 0, 1);
-//			phasePortrait2.SetData (0, new Rectangle (count%phaseresolution, (int)(calculateEnergy()*phaseresolution/10), 1, 1), new Color[] { Color.Red }, 0, 1);
+			if (mstate.LeftButton == ButtonState.Pressed) {
+				Vector2 pos = mstate.Position.ToVector2 () - offset;
+				t1 = (float)Math.Atan2 (pos.X, pos.Y);
+				p1 = 0;
+			}
 		}
 
-		void fadePhasePortrait1()
-		{
-			Color[] data = new Color[phaseresolution * phaseresolution];
-			phasePortrait1.GetData<Color> (data);
-
-			for (int i = 0; i < phaseresolution * phaseresolution; i++)
-				data [i] = data [i] * fadeMultiplier;
-
-			phasePortrait1.SetData<Color>(data);
-		}
-		void fadePhasePortrait2()
-		{
-			Color[] data = new Color[phaseresolution * phaseresolution];
-			phasePortrait2.GetData<Color> (data);
-
-			for (int i = 0; i < phaseresolution * phaseresolution; i++)
-				data [i] = data [i] * fadeMultiplier;
-
-			phasePortrait2.SetData<Color>(data);
-		}
 
 		float calculateEnergy()
 		{
@@ -238,19 +206,22 @@ namespace DoublePendulum
 				(float)Math.Atan2 (pos2.Y - pos1.Y, pos2.X - pos1.X), null, Color.Black, SpriteEffects.None, 0);
 			spriteBatch.Draw (pix, null, new Rectangle ((int)offset.X, (int)offset.Y-thickness/2, (int)((pos1-offset).Length ()), thickness), null, null, 
 				(float)Math.Atan2 (pos1.Y-offset.Y, pos1.X-offset.X), null, Color.Black, SpriteEffects.None, 0);
-			
-			spriteBatch.Draw (phasePortrait1, new Rectangle((int)phasePortrait1Position.X,(int)phasePortrait1Position.Y,phaseresolution,phaseresolution), Color.White);
-			spriteBatch.Draw (phasePortrait2, new Rectangle((int)phasePortrait2Position.X,(int)phasePortrait2Position.Y,phaseresolution,phaseresolution), Color.White);
-			spriteBatch.Draw (thetaTex1, phasePortrait1Position + new Vector2(-20,phaseresolution/2), Color.White);
-			spriteBatch.Draw (dThetaTex1, phasePortrait1Position + new Vector2(phaseresolution/2,-20), Color.White);
-			spriteBatch.Draw (thetaTex2, phasePortrait2Position + new Vector2(-20,phaseresolution/2), Color.White);
-			spriteBatch.Draw (dThetaTex2, phasePortrait2Position + new Vector2(phaseresolution/2,-20), Color.White);
 
+			plot1.Draw (spriteBatch, font);
+			plot2.Draw (spriteBatch, font);
 
-
-			spriteBatch.DrawString (font, "Phase Portrait 1", phasePortrait1Position + new Vector2(phaseresolution/2 - font.MeasureString("Phase Portrait 1").X/2,-80), Color.Black);
-			spriteBatch.DrawString (font, "Phase Portrait 2", phasePortrait2Position + new Vector2(phaseresolution/2 - font.MeasureString("Phase Portrait 2").X/2,-80), Color.Black);
-
+//			spriteBatch.Draw (phasePortrait1, new Rectangle((int)phasePortrait1Position.X,(int)phasePortrait1Position.Y,phaseresolution,phaseresolution), Color.White);
+//			spriteBatch.Draw (phasePortrait2, new Rectangle((int)phasePortrait2Position.X,(int)phasePortrait2Position.Y,phaseresolution,phaseresolution), Color.White);
+//			spriteBatch.Draw (thetaTex1, phasePortrait1Position + new Vector2(-20,phaseresolution/2), Color.White);
+//			spriteBatch.Draw (dThetaTex1, phasePortrait1Position + new Vector2(phaseresolution/2,-20), Color.White);
+//			spriteBatch.Draw (thetaTex2, phasePortrait2Position + new Vector2(-20,phaseresolution/2), Color.White);
+//			spriteBatch.Draw (dThetaTex2, phasePortrait2Position + new Vector2(phaseresolution/2,-20), Color.White);
+//
+//
+//
+//			spriteBatch.DrawString (font, "Phase Portrait 1", phasePortrait1Position + new Vector2(phaseresolution/2 - font.MeasureString("Phase Portrait 1").X/2,-80), Color.Black);
+//			spriteBatch.DrawString (font, "Phase Portrait 2", phasePortrait2Position + new Vector2(phaseresolution/2 - font.MeasureString("Phase Portrait 2").X/2,-80), Color.Black);
+//
 			spriteBatch.End ();
 
 			base.Draw (gameTime);

@@ -28,7 +28,7 @@ namespace DoublePendulum
 
 	class AppDelegate : NSApplicationDelegate
 	{
-		private static Game1 game;
+		private static MainGame game;
 
 		public override void FinishedLaunching (MonoMac.Foundation.NSObject notification)
 		{
@@ -39,7 +39,7 @@ namespace DoublePendulum
 				}
 				return null;
 			};
-			game = new Game1 ();
+			game = new MainGame ();
 			game.Run ();
 		}
 
