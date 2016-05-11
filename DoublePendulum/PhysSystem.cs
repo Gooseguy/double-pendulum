@@ -6,6 +6,9 @@ namespace DoublePendulum
 {
 	public abstract class PhysSystem
 	{
+
+		public bool Active=true;
+		public float Scale = 150f;
 		public PhysSystem ()
 		{
 		}
@@ -17,6 +20,10 @@ namespace DoublePendulum
 		public abstract void Draw(SpriteBatch spriteBatch, SpriteFont font, Texture2D nodeTexture, Texture2D pix);
 
 		public abstract void SetState(Vector2 mousePosition);
+
+		public abstract void Reset ();
+
+		public abstract void DrawPlot(SpriteBatch spriteBatch, SpriteFont font);
 	}
 }
 

@@ -45,8 +45,12 @@ namespace DoublePendulum
 		{
 			graphics = new GraphicsDeviceManager (this);
 			Content.RootDirectory = "Content";	            
-			graphics.IsFullScreen = false;		
+			graphics.IsFullScreen = false;
+			graphics.PreferredBackBufferWidth = 1024;
+			graphics.PreferredBackBufferHeight = 768;
 			this.IsMouseVisible = true;
+
+			//1024,768
 		}
 
 		/// <summary>
@@ -82,8 +86,10 @@ namespace DoublePendulum
 			pix = new Texture2D (graphics.GraphicsDevice, 1, 1);
 			pix.SetData<Color> (new Color[]{ Color.White });
 			systems = new List<PhysSystem> ();
-			systems.Add(new DoublePendulum (new Vector2 (100, 100), graphics.GraphicsDevice, circle));
-			systems.Add(new SinglePendulum (new Vector2 (100, 100), graphics.GraphicsDevice, circle));
+			systems.Add(new DoublePendulum (new Vector2 (512, 40), graphics.GraphicsDevice, circle));
+			systems.Add(new SinglePendulum (new Vector2 (512, 40), graphics.GraphicsDevice, circle));
+			systems.Add(new HarmonicOscillator (new Vector2 (512, 40), graphics.GraphicsDevice, circle));
+			systems.Add(new HarmonicOscillatorEnsemble (new Vector2 (512, 40), graphics.GraphicsDevice, circle));
 
 
 //			font = Content.Load<SpriteFont> ("Comic.spritefont");
@@ -118,6 +124,10 @@ namespace DoublePendulum
 				currSystem++;
 				if (currSystem >= systems.Count)
 					currSystem = 0;
+				systems [currSystem].Reset ();
+			}
+			if (keyState.IsKeyDown (Keys.Space) && prevKeyState.IsKeyUp (Keys.Space)) {
+				systems [currSystem].Active = !systems [currSystem].Active;
 			}
 
 			var mstate = Mouse.GetState ();
@@ -141,7 +151,7 @@ namespace DoublePendulum
 
 
 			systems[currSystem].Draw (spriteBatch, font, circle, pix);
-
+			systems [currSystem].DrawPlot (spriteBatch, font);
 
 //			spriteBatch.Draw (phasePortrait1, new Rectangle((int)phasePortrait1Position.X,(int)phasePortrait1Position.Y,phaseresolution,phaseresolution), Color.White);
 //			spriteBatch.Draw (phasePortrait2, new Rectangle((int)phasePortrait2Position.X,(int)phasePortrait2Position.Y,phaseresolution,phaseresolution), Color.White);

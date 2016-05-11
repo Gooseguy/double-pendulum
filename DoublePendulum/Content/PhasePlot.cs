@@ -17,6 +17,8 @@ namespace DoublePendulum
 		public float MaxT { get; set; }
 		public float MinP { get; set; }
 		public float MaxP { get; set; }
+		public float CurrT { get; set; }
+		public float CurrP { get; set; }
 		float zoom = 1f;
 		const float MinZoom = 0.1f;
 		const float MaxZoom = 10f;
@@ -37,6 +39,10 @@ namespace DoublePendulum
 		private int count=0;
 
 		public Rectangle BoundingRectangle { get { return new Rectangle ((int)Position.X, (int)Position.Y, Resolution, Resolution); } }
+
+		public bool ContainsMouse(Vector2 position) {
+			return BoundingRectangle.Contains (position);
+		}
 
 		bool axisTickLabels = true;
 
@@ -65,15 +71,19 @@ namespace DoublePendulum
 		/// </summary>
 		/// <param name="t">Current value of canonical position</param>
 		/// <param name="p">Current value of canonical momentum</param>
-		public void Update(GameTime gameTime, float t, float p)
+		public void Update(GameTime gameTime, ref float t, ref float p)
 		{
 			//
 			setPhasePortrait(t,p);
 			if (count % FadePeriod == 0)
 				fadePhasePortrait ();
 			count++;
-			handleInput ();
 
+			CurrT = t;
+			CurrP = p;
+			handleInput ();
+			t = CurrT;
+			p = CurrP;
 		}
 
 		void handleInput()
@@ -81,6 +91,21 @@ namespace DoublePendulum
 			MouseState mstate = Mouse.GetState ();
 
 			if (BoundingRectangle.Contains (Mouse.GetState ().Position)) {
+
+				if (mstate.LeftButton == ButtonState.Pressed) {
+					Vector2 position = Mouse.GetState ().Position.ToVector2 ();
+					position -= Position;
+					position *= new Vector2 (MaxT - MinT, MaxP - MinP);
+					position /= Resolution;
+					position += new Vector2 (MinT, MinP);
+					position /= zoom;
+					if (Keyboard.GetState ().IsKeyDown (Keys.LeftShift))
+						position.Y = 0;
+					CurrT = position.X;
+					CurrP = position.Y;
+
+
+				}
 
 				int scrollChange = mstate.ScrollWheelValue - prevMouseState.ScrollWheelValue;
 				zoom += 0.0001f * scrollChange;
@@ -102,6 +127,8 @@ namespace DoublePendulum
 
 			texture.SetData (0, new Rectangle (rT, rP, 1, 1), new Color[] { Color.Black }, 0, 1);
 		}
+
+		
 
 		void generateGrid()
 		{
@@ -147,7 +174,7 @@ namespace DoublePendulum
 
 			Vector2 size = font.MeasureString (Title);
 
-			spriteBatch.DrawString (font, Title, Position + new Vector2 ((Resolution - size.X) / 2, -size.Y), Color.Black);
+			spriteBatch.DrawString (font, Title, Position + new Vector2 ((Resolution - size.X) / 2, -2*size.Y), Color.Black);
 
 			Vector2 size2 = font.MeasureString (HorizontalAxisLabel);
 			spriteBatch.DrawString (font, HorizontalAxisLabel, Position + new Vector2 ((Resolution - size2.X), -size2.Y), Color.Black);
@@ -159,7 +186,6 @@ namespace DoublePendulum
 			Vector2 size4 = font.MeasureString (zoomLabel);
 
 			spriteBatch.DrawString (font, zoomLabel, Position + new Vector2 ((Resolution - size4.X), Resolution-size4.Y), Color.Black);
-
 		}
 	}
 }
