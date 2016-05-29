@@ -72,7 +72,7 @@ namespace DoublePendulum
 				(float)Math.Atan2 (pos1.Y-Offset.Y, pos1.X-Offset.X), null, Color.Black, SpriteEffects.None, 0);
 
 			ball1.Position = pos1;
-			ball1.Draw (spriteBatch, font);
+			ball1.Draw (spriteBatch, font, Color.Black);
 
 		}
 		public override void DrawPlot (SpriteBatch spriteBatch, SpriteFont font)

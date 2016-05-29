@@ -17,13 +17,13 @@ namespace DoublePendulum
 			Label = label;
 		}
 
-		public void Draw(SpriteBatch spriteBatch, SpriteFont font)
+		public void Draw(SpriteBatch spriteBatch, SpriteFont font, Color color)
 		{
-			spriteBatch.Draw (texture, Position, null, null, new Vector2(texture.Width/2, texture.Height/2),0,null, Color.Black, SpriteEffects.None,0);
+			spriteBatch.Draw (texture, Position, null, null, new Vector2(texture.Width/2, texture.Height/2),0,null, color, SpriteEffects.None,0);
 			spriteBatch.Draw (texture, Position, null, null, new Vector2(texture.Width/2, texture.Height/2),0,0.9f * Vector2.One, Color.White, SpriteEffects.None,0);
 
 			Vector2 size = font.MeasureString (Label);
-			spriteBatch.DrawString (font, Label, Position - size*0.5f, Color.Black);
+			spriteBatch.DrawString (font, Label, Position - size*0.5f, color);
 		}
 	}
 }

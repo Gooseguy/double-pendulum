@@ -7,17 +7,30 @@ namespace DoublePendulum
 	public class DoublePendulum : PhysSystem
 	{
 		public Vector2 Offset { get; set; }
-		float t1, t2;
+		public float t1, t2;
 		float p1, p2;
 		float m1, m2;
 		float g;
 		float l1, l2;
 
+		Color color;
+
 		PhasePlot plot1, plot2;
 
 		BallSprite ball1, ball2;
+		public DoublePendulum (Vector2 offset, GraphicsDevice graphicsDevice, Texture2D circleTexture, PhasePlot _plot1,PhasePlot _plot2, Color _color)
+		{
+			Reset ();
+			Offset = offset;
+			plot1 = _plot1;
+			plot2 = _plot2;
+			ball1 = new BallSprite (circleTexture, "1");
+			ball2 = new BallSprite (circleTexture, "2");
+			color = _color;
+		}
 
-		public DoublePendulum (Vector2 offset, GraphicsDevice graphicsDevice, Texture2D circleTexture)
+
+		public DoublePendulum (Vector2 offset, GraphicsDevice graphicsDevice, Texture2D circleTexture, Color _color)
 		{
 			Reset ();
 			Offset = offset;
@@ -40,6 +53,7 @@ namespace DoublePendulum
 
 			ball1 = new BallSprite (circleTexture, "1");
 			ball2 = new BallSprite (circleTexture, "2");
+			color = _color;
 		}
 
 		public override float GetEnergy ()
@@ -100,14 +114,14 @@ namespace DoublePendulum
 			Vector2 pos2 = pos1 + Scale*l2 * new Vector2 ((float)Math.Sin (t2), (float)Math.Cos (t2));
 
 			spriteBatch.Draw (pix, null, new Rectangle ((int)pos1.X, (int)pos1.Y-thickness/2, (int)((pos2 - pos1).Length ()), thickness), null, null, 
-				(float)Math.Atan2 (pos2.Y - pos1.Y, pos2.X - pos1.X), null, Color.Black, SpriteEffects.None, 0);
+				(float)Math.Atan2 (pos2.Y - pos1.Y, pos2.X - pos1.X), null, color, SpriteEffects.None, 0);
 			spriteBatch.Draw (pix, null, new Rectangle ((int)Offset.X, (int)Offset.Y-thickness/2, (int)((pos1-Offset).Length ()), thickness), null, null, 
-				(float)Math.Atan2 (pos1.Y-Offset.Y, pos1.X-Offset.X), null, Color.Black, SpriteEffects.None, 0);
+				(float)Math.Atan2 (pos1.Y-Offset.Y, pos1.X-Offset.X), null, color, SpriteEffects.None, 0);
 
 			ball1.Position = pos1;
 			ball2.Position = pos2;
-			ball1.Draw (spriteBatch, font);
-			ball2.Draw (spriteBatch, font);
+			ball1.Draw (spriteBatch, font, color);
+			ball2.Draw (spriteBatch, font, color);
 		}
 
 		public override void DrawPlot (SpriteBatch spriteBatch, SpriteFont font)
@@ -126,8 +140,8 @@ namespace DoublePendulum
 		}
 		public override void Reset ()
 		{
-			t1 = (float)Math.PI / 16;
-			t2 = (float)(2*Math.PI/3);
+			t1 = (float)Math.PI / 3 + 0.01f;
+			t2 = 0;
 			p1 = 0;
 			p2 = 0;
 			m1 = 1;

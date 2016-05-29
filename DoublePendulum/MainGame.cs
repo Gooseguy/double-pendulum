@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Storage;
 using Microsoft.Xna.Framework.Input;
 using System.Threading;
 using System.Collections.Generic;
+using System.IO;
 
 #endregion
 
@@ -40,15 +41,25 @@ namespace DoublePendulum
 		int currSystem = 0;
 
 		KeyboardState prevKeyState;
+		const int VIEWPORT_WIDTH = 1024;
+		const int VIEWPORT_HEIGHT = 768;
+
+		const int CAPTURE_PERIOD = 1;
+		const bool CAPTURE = true;
+		const string CAPTURE_SAVE_LOCATION = "/Users/christian.cosgrove/Desktop/pendulum_screenshots";
+		Rectangle CAPTURE_RECTANGLE = new Rectangle(0,0, 1024, 768);
+//		Rectangle CAPTURE_RECTANGLE = new Rectangle(100,0, VIEWPORT_WIDTH-2*100, 400);
+		const bool CROP_CAPTURE = true;
 
 		public MainGame ()
 		{
 			graphics = new GraphicsDeviceManager (this);
 			Content.RootDirectory = "Content";	            
 			graphics.IsFullScreen = false;
-			graphics.PreferredBackBufferWidth = 1024;
-			graphics.PreferredBackBufferHeight = 768;
+			graphics.PreferredBackBufferWidth = VIEWPORT_WIDTH;
+			graphics.PreferredBackBufferHeight =VIEWPORT_HEIGHT;
 			this.IsMouseVisible = true;
+			graphics.IsFullScreen = true;
 
 			//1024,768
 		}
@@ -61,7 +72,7 @@ namespace DoublePendulum
 		/// </summary>
 		protected override void Initialize ()
 		{
-
+			ClearCaptureFolder ();
 			base.Initialize ();
 		}
 
@@ -86,7 +97,8 @@ namespace DoublePendulum
 			pix = new Texture2D (graphics.GraphicsDevice, 1, 1);
 			pix.SetData<Color> (new Color[]{ Color.White });
 			systems = new List<PhysSystem> ();
-			systems.Add(new DoublePendulum (new Vector2 (512, 40), graphics.GraphicsDevice, circle));
+			systems.Add(new DoublePendulumEnsemble (new Vector2 (512, 40), graphics.GraphicsDevice, circle));
+			systems.Add(new DoublePendulum (new Vector2 (512, 40), graphics.GraphicsDevice, circle, Color.Black));
 			systems.Add(new SinglePendulum (new Vector2 (512, 40), graphics.GraphicsDevice, circle));
 			systems.Add(new HarmonicOscillator (new Vector2 (512, 40), graphics.GraphicsDevice, circle));
 			systems.Add(new HarmonicOscillatorEnsemble (new Vector2 (512, 40), graphics.GraphicsDevice, circle));
@@ -94,6 +106,31 @@ namespace DoublePendulum
 
 //			font = Content.Load<SpriteFont> ("Comic.spritefont");
 			//TODO: use this.Content to load your game content here 
+		}
+
+		public void ClearCaptureFolder()
+		{
+			if (!Directory.Exists (CAPTURE_SAVE_LOCATION))
+				Directory.CreateDirectory (CAPTURE_SAVE_LOCATION);
+			string[] files = Directory.GetFiles (CAPTURE_SAVE_LOCATION);
+			foreach (string f in files) {
+				File.Delete (f);
+			}
+		}
+
+		public Texture2D TakeScreenshot(GameTime gameTime)
+		{
+			int w, h;
+			w = GraphicsDevice.PresentationParameters.BackBufferWidth;
+			h = GraphicsDevice.PresentationParameters.BackBufferHeight;
+			RenderTarget2D screenshot;
+			screenshot = new RenderTarget2D (GraphicsDevice, w, h);
+			GraphicsDevice.SetRenderTarget(screenshot);
+			// _lastUpdatedGameTime is a variable typed GameTime, used to record the time last updated and create a common time standard for some game components
+			Draw(gameTime);
+			GraphicsDevice.Present();
+			GraphicsDevice.SetRenderTarget(null);
+			return screenshot;
 		}
 
 		/// <summary>
@@ -114,7 +151,6 @@ namespace DoublePendulum
 			for (int i = 0; i < 10; i++) {
 				systems[currSystem].Update (gameTime, timestep);
 			}
-			count++;
 			Console.WriteLine ("Avg energy: {0}", energyAverage / count);
 			base.Update (gameTime);
 
@@ -135,6 +171,22 @@ namespace DoublePendulum
 				systems [currSystem].SetState (mstate.Position.ToVector2 ());
 			prevKeyState = keyState;
 
+			if (count % CAPTURE_PERIOD == 0) {
+				Texture2D t = TakeScreenshot (gameTime);
+				if (CROP_CAPTURE) {
+					Color[] data = new Color[CAPTURE_RECTANGLE.Width * CAPTURE_RECTANGLE.Height];
+					t.GetData<Color> (0, CAPTURE_RECTANGLE, data, 0, CAPTURE_RECTANGLE.Width * CAPTURE_RECTANGLE.Height);
+					FileStream s = new FileStream (String.Format ("{0}/{1}.png", CAPTURE_SAVE_LOCATION, count / CAPTURE_PERIOD), FileMode.OpenOrCreate);
+					Texture2D newTexture = new Texture2D (GraphicsDevice, CAPTURE_RECTANGLE.Width, CAPTURE_RECTANGLE.Height);
+					newTexture.SetData (data);
+					newTexture.SaveAsPng (s, newTexture.Width, newTexture.Height);
+				} else {
+					FileStream s = new FileStream (String.Format ("{0}/{1}.png", CAPTURE_SAVE_LOCATION, count / CAPTURE_PERIOD), FileMode.OpenOrCreate);
+
+					t.SaveAsPng (s, t.Width, t.Height);
+				}
+			}
+			count++;
 		}
 
 

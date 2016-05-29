@@ -68,6 +68,7 @@
     <Compile Include="BallSprite.cs" />
     <Compile Include="HarmonicOscillator.cs" />
     <Compile Include="HarmonicOscillatorEnsemble.cs" />
+    <Compile Include="DoublePendulumEnsemble.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
