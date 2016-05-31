@@ -25,6 +25,7 @@
     <EnablePackageSigning>false</EnablePackageSigning>
     <EnableCodeSigning>false</EnableCodeSigning>
     <CreatePackage>false</CreatePackage>
+    <Profiling>false</Profiling>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>full</DebugType>
@@ -39,6 +40,7 @@
     <CreatePackage>false</CreatePackage>
     <EnableCodeSigning>false</EnableCodeSigning>
     <EnablePackageSigning>false</EnablePackageSigning>
+    <Profiling>false</Profiling>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -69,6 +71,8 @@
     <Compile Include="HarmonicOscillator.cs" />
     <Compile Include="HarmonicOscillatorEnsemble.cs" />
     <Compile Include="DoublePendulumEnsemble.cs" />
+    <Compile Include="SinglePendulumEnsemble.cs" />
+    <Compile Include="SpringPendulum.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -97,5 +101,6 @@
     <Content Include="Content\MainFontLarge.xnb" />
     <Content Include="Content\Arial.spritefont" />
     <Content Include="Content\Arial.xnb" />
+    <Content Include="Content\smiley.png" />
   </ItemGroup>
 </Project>

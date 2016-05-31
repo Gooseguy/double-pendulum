@@ -5,17 +5,17 @@ using Microsoft.Xna.Framework;
 
 namespace DoublePendulum
 {
-	public class HarmonicOscillatorEnsemble : PhysSystem
+	public class SinglePendulumEnsemble : PhysSystem
 	{
-		List<HarmonicOscillator> systems;
+		List<SinglePendulum> systems;
 
 		const int NumSystems=500;
 
 		PhasePlot plot;
 
-		public HarmonicOscillatorEnsemble (Vector2 offset, GraphicsDevice graphicsDevice, Texture2D circleTexture, Texture2D sampleTex)
+		public SinglePendulumEnsemble (Vector2 offset, GraphicsDevice graphicsDevice, Texture2D circleTexture, Texture2D sampleTex)
 		{
-			systems = new List<HarmonicOscillator> ();
+			systems = new List<SinglePendulum> ();
 			Random rand = new Random ();
 			plot = new PhasePlot (200, new Vector2 (100, 200), graphicsDevice);
 			plot.Title = "Phase Portrait 1";
@@ -26,7 +26,7 @@ namespace DoublePendulum
 			plot.MinP = -5;
 			plot.MaxP = 5;
 			for (int i = 0; i < NumSystems; i++) {
-				systems.Add (new HarmonicOscillator (offset, graphicsDevice, circleTexture, plot));
+				systems.Add (new SinglePendulum (offset, graphicsDevice, circleTexture, plot));
 
 				float x = -1, y = -1;
 				Color[] pix = new Color[1];
@@ -47,14 +47,14 @@ namespace DoublePendulum
 
 		public override void Update(GameTime gameTime, float timestep)
 		{
-			foreach (HarmonicOscillator system in systems) {
+			foreach (SinglePendulum system in systems) {
 				system.Update (gameTime, timestep);
 			}
 		}
 
 		public override void Reset ()
 		{
-			
+
 		}
 
 		public override float GetEnergy ()
@@ -75,7 +75,7 @@ namespace DoublePendulum
 
 		public override void Draw(SpriteBatch spriteBatch, SpriteFont font, Texture2D nodeTexture, Texture2D pix)
 		{
-			foreach (HarmonicOscillator system in systems) 
+			foreach (SinglePendulum system in systems) 
 			{
 				system.Draw (spriteBatch, font, nodeTexture, pix);
 			}

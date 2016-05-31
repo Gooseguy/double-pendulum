@@ -96,6 +96,11 @@ namespace DoublePendulum
 				p1 = 0;
 			}
 		}
+		public override void SetState (float t, float p)
+		{
+			t1 = t; p1 = p;
+		}
+
 		public override void Reset ()
 		{
 			t1 = 1.0f;

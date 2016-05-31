@@ -20,6 +20,7 @@ namespace DoublePendulum
 		public abstract void Draw(SpriteBatch spriteBatch, SpriteFont font, Texture2D nodeTexture, Texture2D pix);
 
 		public abstract void SetState(Vector2 mousePosition);
+		public abstract void SetState(float t, float p);
 
 		public abstract void Reset ();
 

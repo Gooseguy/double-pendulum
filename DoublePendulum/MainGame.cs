@@ -39,15 +39,16 @@ namespace DoublePendulum
 
 		List<PhysSystem> systems;
 		int currSystem = 0;
+		RenderTarget2D screenshot;
 
 		KeyboardState prevKeyState;
 		const int VIEWPORT_WIDTH = 1024;
 		const int VIEWPORT_HEIGHT = 768;
 
-		const int CAPTURE_PERIOD = 1;
-		const bool CAPTURE = true;
-		const string CAPTURE_SAVE_LOCATION = "/Users/christian.cosgrove/Desktop/pendulum_screenshots";
-		Rectangle CAPTURE_RECTANGLE = new Rectangle(0,0, 1024, 768);
+		const int CAPTURE_PERIOD = 50;
+		const bool CAPTURE = false;
+		const string CAPTURE_SAVE_LOCATION = "/Users/christian/Desktop/pendulum_screenshots";
+		Rectangle CAPTURE_RECTANGLE = new Rectangle(100,200, 200,200);
 //		Rectangle CAPTURE_RECTANGLE = new Rectangle(100,0, VIEWPORT_WIDTH-2*100, 400);
 		const bool CROP_CAPTURE = true;
 
@@ -59,7 +60,7 @@ namespace DoublePendulum
 			graphics.PreferredBackBufferWidth = VIEWPORT_WIDTH;
 			graphics.PreferredBackBufferHeight =VIEWPORT_HEIGHT;
 			this.IsMouseVisible = true;
-			graphics.IsFullScreen = true;
+			graphics.IsFullScreen = false;
 
 			//1024,768
 		}
@@ -72,7 +73,7 @@ namespace DoublePendulum
 		/// </summary>
 		protected override void Initialize ()
 		{
-			ClearCaptureFolder ();
+			if (CAPTURE) ClearCaptureFolder ();
 			base.Initialize ();
 		}
 
@@ -96,14 +97,23 @@ namespace DoublePendulum
 
 			pix = new Texture2D (graphics.GraphicsDevice, 1, 1);
 			pix.SetData<Color> (new Color[]{ Color.White });
+			Texture2D bpix = new Texture2D (graphics.GraphicsDevice, 1, 1);
+			bpix.SetData<Color> (new Color[]{ Color.Black });
 			systems = new List<PhysSystem> ();
-			systems.Add(new DoublePendulumEnsemble (new Vector2 (512, 40), graphics.GraphicsDevice, circle));
-			systems.Add(new DoublePendulum (new Vector2 (512, 40), graphics.GraphicsDevice, circle, Color.Black));
-			systems.Add(new SinglePendulum (new Vector2 (512, 40), graphics.GraphicsDevice, circle));
 			systems.Add(new HarmonicOscillator (new Vector2 (512, 40), graphics.GraphicsDevice, circle));
-			systems.Add(new HarmonicOscillatorEnsemble (new Vector2 (512, 40), graphics.GraphicsDevice, circle));
+			systems.Add(new SinglePendulum (new Vector2 (512, 40), graphics.GraphicsDevice, circle));
+			systems.Add(new DoublePendulum (new Vector2 (512, 40), graphics.GraphicsDevice, circle, Color.Black));
+			systems.Add(new DoublePendulumEnsemble (new Vector2 (512, 40), graphics.GraphicsDevice, circle));
+			//systems.Add(new HarmonicOscillatorEnsemble (new Vector2 (512, 40), graphics.GraphicsDevice, circle, Content.Load<Texture2D>("smiley")));
+			//systems.Add (new SinglePendulumEnsemble (new Vector2 (512, 40), graphics.GraphicsDevice, circle, Content.Load<Texture2D>("smiley")));
+//			systems.Add(new SpringPendulum (new Vector2 (512, 40), graphics.GraphicsDevice, circle));
+
+			if (CAPTURE) {
+				screenshot = new RenderTarget2D (GraphicsDevice, GraphicsDevice.PresentationParameters.BackBufferWidth, GraphicsDevice.PresentationParameters.BackBufferHeight);
 
 
+				GraphicsDevice.SetRenderTarget (screenshot);
+			}
 //			font = Content.Load<SpriteFont> ("Comic.spritefont");
 			//TODO: use this.Content to load your game content here 
 		}
@@ -123,13 +133,10 @@ namespace DoublePendulum
 			int w, h;
 			w = GraphicsDevice.PresentationParameters.BackBufferWidth;
 			h = GraphicsDevice.PresentationParameters.BackBufferHeight;
-			RenderTarget2D screenshot;
-			screenshot = new RenderTarget2D (GraphicsDevice, w, h);
-			GraphicsDevice.SetRenderTarget(screenshot);
 			// _lastUpdatedGameTime is a variable typed GameTime, used to record the time last updated and create a common time standard for some game components
 			Draw(gameTime);
 			GraphicsDevice.Present();
-			GraphicsDevice.SetRenderTarget(null);
+//			GraphicsDevice.SetRenderTarget(null);
 			return screenshot;
 		}
 
@@ -165,13 +172,15 @@ namespace DoublePendulum
 			if (keyState.IsKeyDown (Keys.Space) && prevKeyState.IsKeyUp (Keys.Space)) {
 				systems [currSystem].Active = !systems [currSystem].Active;
 			}
+			if (keyState.IsKeyDown (Keys.R))
+				systems [currSystem].Reset ();
 
 			var mstate = Mouse.GetState ();
 			if (mstate.LeftButton == ButtonState.Pressed)
 				systems [currSystem].SetState (mstate.Position.ToVector2 ());
 			prevKeyState = keyState;
 
-			if (count % CAPTURE_PERIOD == 0) {
+			if (CAPTURE && count % CAPTURE_PERIOD == 0) {
 				Texture2D t = TakeScreenshot (gameTime);
 				if (CROP_CAPTURE) {
 					Color[] data = new Color[CAPTURE_RECTANGLE.Width * CAPTURE_RECTANGLE.Height];
@@ -201,6 +210,11 @@ namespace DoublePendulum
 
 			spriteBatch.Begin ();
 
+
+			const string copyright = "ChaosRender v\u03B5 - Christian Cosgrove";
+			Vector2 dim = font.MeasureString (copyright);
+			const int padding = 16;
+			spriteBatch.DrawString (font, copyright, new Vector2 (VIEWPORT_WIDTH - dim.X - padding, VIEWPORT_HEIGHT - dim.Y - padding), Color.Black);
 
 			systems[currSystem].Draw (spriteBatch, font, circle, pix);
 			systems [currSystem].DrawPlot (spriteBatch, font);
